@@ -32,3 +32,4 @@ cargo run --release
 
 ## ⚖️ License
 MIT License - 2026 Lévy / Polygone Ecosystem.
+by Hope
