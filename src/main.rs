@@ -9,26 +9,28 @@ use crossterm::{
 };
 use ratatui::{backend::CrosstermBackend, Terminal};
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Setup terminal
+pub fn run_shell() -> Result<(), Box<dyn std::error::Error>> {
     enable_raw_mode()?;
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    // Create app state
     let mut app = ui::AppState {
-        peer_id: "unknown".into(), // Will be populated by libp2p
+        peer_id: std::env::var("POLYGONE_PEER_ID").unwrap_or_else(|_| "Generating...".into()),
         session_id: "none".into(),
         active_tab: 0,
-        logs: vec!["[SYSTEM] Terminal Shell Initialisé.".into()],
+        logs: vec![
+            "  ⬡ POLYGONE-SHELL — by Hope 🇫🇷".into(),
+            "  [SYSTEM] Ready. [Q] Quit  [TAB] Switch tabs".into(),
+            "  [SYSTEM] Run 'polygone keygen' to generate your keypair.".into(),
+            "  [SYSTEM] Run 'polygone send --peer-pk demo' to test the protocol.".into(),
+        ],
     };
 
-    // Main loop
     let tick_rate = Duration::from_millis(250);
     let mut last_tick = Instant::now();
+
     loop {
         terminal.draw(|f| ui::draw(f, &app))?;
 
@@ -39,7 +41,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         if event::poll(timeout)? {
             if let Event::Key(key) = event::read()? {
                 match key.code {
-                    KeyCode::Char('q') => break,
+                    KeyCode::Char('q') | KeyCode::Char('Q') => break,
                     KeyCode::Tab => {
                         app.active_tab = (app.active_tab + 1) % 3;
                     }
@@ -47,14 +49,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
         }
-        
+
         if last_tick.elapsed() >= tick_rate {
-            // Here we would poll libp2p events
             last_tick = Instant::now();
         }
     }
 
-    // Restore terminal
     disable_raw_mode()?;
     execute!(
         terminal.backend_mut(),
@@ -62,6 +62,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         DisableMouseCapture
     )?;
     terminal.show_cursor()?;
-
     Ok(())
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    run_shell()
 }
