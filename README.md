@@ -38,3 +38,8 @@ cargo run --release
 
 ## ⚖️ License
 MIT License — 2026 · **l-vs** · **Hope** (*by Hope*) · Polygone ecosystem
+
+
+---
+
+**Soutenir** — [`payrequest.me/lvs0`](https://payrequest.me/lvs0)
